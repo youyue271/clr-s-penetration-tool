@@ -1,0 +1,21 @@
+# 全局配置
+global:
+  log_level: INFO
+# temp_dir:
+
+# 模块配置
+modules:
+  scanner:
+    port_scanner:
+      enable: true
+      adapter: nmap
+      params:
+        ports: "1-1000"
+        timing: T4
+        script: "vulners"
+
+# 工具路径配置
+adapters:
+  nmap:
+    path: "H:\\tools\\Penetration\\tools\\Nmap\\nmap.exe"
+    timeout: 600
