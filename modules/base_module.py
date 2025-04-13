@@ -41,13 +41,14 @@ class BaseModule(metaclass=abc.ABCMeta):
         self.thread_manager:ThreadManager = thread_manager
         # self._last_error = None
 
-    def waitMessage(self) -> None:
+    def waitMessage(self) -> bool:
         """等待消息逻辑（必须实现）"""
         messages = self.subscribe_messages(self.inputChannel)
         if messages is not None:
             self.messages = messages
             self.data = messages.get('data', {})
-            self.state.transition(ModuleState.READY)
+            return True
+        return False
 
     @abc.abstractmethod
     def waitOutput(self) -> None:
@@ -96,7 +97,7 @@ class BaseModule(metaclass=abc.ABCMeta):
                     },
                     priority=priority
                 )
-                print(f"消息发布到 {channel}: {data.keys()}")
+                print(f"消息发布到 {channel}: {data.values()}")
             except Exception as e:
                 print(f"发布消息失败: {str(e)}")
                 # self._last_error = e

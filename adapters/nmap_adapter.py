@@ -15,42 +15,15 @@ class NmapAdapter(BaseAdapter):
             self.default_params = self._config['params']
 
     @staticmethod
-    def _parse_xml(xml_output: str) -> Dict:
+    def parse_xml(output: str) -> [Dict]:
         """解析Nmap XML输出"""
-        root = ET.fromstring(xml_output)
-        result = {'target': '', 'ports': []}
+        outputlist = output.split('\n\n')[1].split('\n')[1:]
+        dataList = []
+        for outputData in outputlist:
+            port, state, service = [data for data in outputData.split(' ') if data]
+            dataList.append({'port': port, 'state': state, 'service': service})
 
-        # 解析目标信息
-        host = root.find('host')
-        if host is not None:
-            address = host.find('address')
-            if address is not None:
-                result['target'] = address.get('addr', '')
-
-            # 解析端口信息
-            ports = host.find('ports')
-            if ports is not None:
-                for port in ports.findall('port'):
-                    port_data = {
-                        'port': port.get('portid'),
-                        'protocol': port.get('protocol'),
-                        'state': port.find('state').get('state'),
-                        'service': port.find('service').get('name'),
-                        'version': port.find('service').get('product'),
-                        'scripts': []
-                    }
-
-                    # 解析脚本输出
-                    scripts = port.findall('script')
-                    for script in scripts:
-                        script_data = {
-                            'id': script.get('id'),
-                            'output': script.get('output')
-                        }
-                        port_data['scripts'].append(script_data)
-
-                    result['ports'].append(port_data)
-        return result
+        return dataList
 
     def scan(self, target: str, output_path: str, params: dict = None) -> None:
         """执行Nmap扫描"""
@@ -58,6 +31,7 @@ class NmapAdapter(BaseAdapter):
         scan_params = {**self.default_params, **(params or {})}
 
         # 构建命令
+        # todo:参数的处理逻辑需要进一步细化
         cmd = [
             self.binary,
             # '-Pn',

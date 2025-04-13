@@ -64,11 +64,14 @@ class PentestEngine:
                     module_state = module.state.current
 
                     if module_state == ModuleState.WAITING:
-                        module.waitMessage()
-                    if module_state == ModuleState.READY:
-                        module.execute()
+                        if module.waitMessage():
+                            module.state.transition(ModuleState.READY)
+                    elif module_state == ModuleState.READY:
+                        if module.execute():
+                            module.state.transition(ModuleState.RUNNING)
                     elif module_state == ModuleState.RUNNING:
-                        module.waitOutput()
+                        if module.waitOutput():
+                            module.state.transition(ModuleState.WAITING)
                     elif module_state == ModuleState.ERROR:
                         self._state.transition(EngineState.ERROR)
 

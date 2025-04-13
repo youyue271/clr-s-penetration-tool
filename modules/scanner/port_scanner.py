@@ -26,10 +26,10 @@ class PortScanner(BaseModule):
         super().__init__(step, name, inputChannel, message_bus, thread_manager)
 
         self.scanner = None
-        self.current_target = None
         self.tmp_path = None
+        self.thread = None
 
-    def execute(self) -> None:
+    def execute(self) -> bool:
         """运行外部程序"""
         try:
             self.scanner = NmapAdapter(self._config)
@@ -40,62 +40,45 @@ class PortScanner(BaseModule):
             if not os.path.exists(tmp_dir):
                 os.makedirs(tmp_dir)
             self.tmp_path = tmp_dir + "nmap_scan.result"
-            self.thread_manager.addProcess(self.scanner.scan, "Nmap scanner", ('127.0.0.1',self.tmp_path, self._config))
+            self.thread = self.thread_manager.addProcess(self.scanner.scan, "Nmap scanner", ('127.0.0.1',self.tmp_path, self._config))
 
-            print(f"端口扫描器初始化完成，扫描端口范围: {ports}")
-            self.state.transition(ModuleState.RUNNING)
+            print(f"端口扫描器初始化完成，开始扫描端口范围: {ports}")
+            return True
 
         except Exception as e:
             self.handle_error(e, critical=True)
+            return False
 
     def waitOutput(self, inputs=None):
         """执行端口扫描"""
         try:
-            # 获取扫描目标（多种来源）
-            targets = self._resolve_targets(inputs)
-            results = {}
-
-            for target in targets:
-                self.current_target = target
-                print(f"开始扫描 {target}")
-
-                # 调用适配器执行扫描
-                scan_result = self.scanner.scan(
-                    target=target,
-                    ports=self.ports,
-                    timeout=self.timeout
-                )
-
-                # 发布结果到总线
-                self.publish_message(
-                    channel="scan_results",
-                    data=scan_result,
-                    priority=1
-                )
-
-                # 更新上下文
-                results[target] = scan_result
-                self.update_context({"scan_results": results})
-
-            return results
+            if self.thread.is_alive():
+                return
+            else:
+                with open(self.tmp_path, "r") as f:
+                    output = f.read()
+                if len(output):
+                    scan_results = self.scanner.parse_xml(output)
+                    # 发布结果到总线
+                    for scan_result in scan_results:
+                        self.publish_message(
+                            channel="scan_results",
+                            data=scan_result,
+                            priority=1
+                        )
+                    return True
+                else:
+                    print(self.tmp_path + "中没有内容")
+                    return False
 
         except Exception as e:
             self.handle_error(e)
-            return {}
+            return False
 
     def cleanup(self):
         """释放资源"""
-        if self.scanner:
-            self.scanner.close()
-        self.current_target = None
+        self.thread = None
+        self.thread_manager.checkAlive()
         print("端口扫描资源已释放")
 
-    def _resolve_targets(self, inputs):
-        """解析目标来源：优先级
-        1. 直接输入
-        2. 上下文中的目标
-        3. 配置文件默认值"""
-        if inputs:
-            return [item.get("target") for item in inputs]
-        return self._context.get("targets") or \
-            self._config.get("default_targets")
+

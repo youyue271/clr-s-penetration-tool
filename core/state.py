@@ -30,8 +30,8 @@ class StateMachine:
 
 
 class ModuleState(Enum):
-    READY = auto()
     WAITING = auto()  # 等待可用输入
+    READY = auto()
     RUNNING = auto()  # 运行可用输入
     ERROR = auto()  # 超时等
     COMPLETED = auto()  # 结束

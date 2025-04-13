@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 
 
+# todo:补充一下logger逻辑
 class LogManager:
     _initialized = False
     _loggers = {}  # 缓存已创建的logger

@@ -19,6 +19,7 @@ class MessageBus:
         # self.create_channel("vuln_alerts", priority=True)
         # self.create_channel("llm_commands", persistent=True)
         self.create_channel("scan_target")
+        self.create_channel("scan_results")
         self.create_channel("module_errors")
         self.create_channel("system_errors")
 
