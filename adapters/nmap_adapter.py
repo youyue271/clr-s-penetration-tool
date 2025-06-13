@@ -1,7 +1,5 @@
 import subprocess
-import xml.etree.ElementTree as ET
-from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 from adapters.base_adapter import BaseAdapter
 
@@ -15,9 +13,9 @@ class NmapAdapter(BaseAdapter):
             self.default_params = self._config['params']
 
     @staticmethod
-    def parse_xml(output: str) -> [Dict]:
+    def parse_xml(output: str) -> list[Dict]:
         """解析Nmap XML输出"""
-        outputlist = output.split('\n\n')[1].split('\n')[1:]
+        outputlist = output.split('PORT     STATE    SERVICE\n')[1].split('\n\n')[0].split('\n')
         dataList = []
         for outputData in outputlist:
             port, state, service = [data for data in outputData.split(' ') if data]

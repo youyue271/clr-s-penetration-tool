@@ -1,9 +1,8 @@
 # adapters/base_adapter.py
 import abc
 import os
-import subprocess
 import shlex
-from pathlib import Path
+import subprocess
 from typing import Optional, Dict, Any, Tuple, Union
 
 import yaml
@@ -38,7 +37,7 @@ class BaseAdapter(metaclass=abc.ABCMeta):
         self.tool_config = self._load_tool_config(self._adapter_name)
 
         # 验证必要配置项
-        # self._validate_config()
+        self._validate_config()
 
         # 初始化状态
         self._process: Optional[subprocess.Popen] = None
@@ -53,10 +52,13 @@ class BaseAdapter(metaclass=abc.ABCMeta):
 
         return adapters.get(tool_name, {})
 
-    # @abc.abstractmethod
-    # def _validate_config(self):
-    #     """验证必要配置项（必须实现）"""
-    #     pass
+    def _validate_config(self):
+        path = self.tool_config['path']
+        if not os.path.exists(path):
+            self.logger.error(f"{self._adapter_name} 的可执行文件路径不存在")
+            raise FileNotFoundError(f"{self._adapter_name}")
+            # return False
+        return True
 
     # @property
     # @abc.abstractmethod

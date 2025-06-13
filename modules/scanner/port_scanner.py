@@ -1,13 +1,10 @@
 # modules/scanner/port_scanner.py
 import os
-import tempfile
-import time
 
+from adapters.nmap_adapter import NmapAdapter
 from core.message_bus import MessageBus
-from core.state import ModuleState
 from core.thread_manager import ThreadManager
 from modules.base_module import BaseModule
-from adapters.nmap_adapter import NmapAdapter
 
 
 def create(message_bus: MessageBus, thread_manager: ThreadManager):
@@ -40,7 +37,7 @@ class PortScanner(BaseModule):
             if not os.path.exists(tmp_dir):
                 os.makedirs(tmp_dir)
             self.tmp_path = tmp_dir + "nmap_scan.result"
-            self.thread = self.thread_manager.addProcess(self.scanner.scan, "Nmap scanner", ('127.0.0.1',self.tmp_path, self._config))
+            self.thread = self.thread_manager.addProcess(self.scanner.scan, "Nmap scanner", (self.data['ip'],self.tmp_path, self._config))
 
             print(f"端口扫描器初始化完成，开始扫描端口范围: {ports}")
             return True
@@ -69,7 +66,7 @@ class PortScanner(BaseModule):
                     return True
                 else:
                     print(self.tmp_path + "中没有内容")
-                    return False
+                    return True
 
         except Exception as e:
             self.handle_error(e)
