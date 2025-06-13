@@ -17,5 +17,8 @@ modules:
 # 工具路径配置
 adapters:
   nmap:
-    path: "H:\\tools\\Penetration\\tools\\Nmap\\nmap.exe"
+    path: "H:\\tools\\Penetration\\tools\\01 scan\\Nmap\\nmap.exe"
+    timeout: 600
+  fscan:
+    path: "H:\\tools\\Penetration\\tools\\01 scan\\fscan\\fscan.exe"
     timeout: 600

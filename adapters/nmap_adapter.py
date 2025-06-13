@@ -13,13 +13,16 @@ class NmapAdapter(BaseAdapter):
             self.default_params = self._config['params']
 
     @staticmethod
-    def parse_xml(output: str) -> list[Dict]:
+    def parse_output(output: str) -> list[Dict]:
         """解析Nmap XML输出"""
-        outputlist = output.split('PORT     STATE    SERVICE\n')[1].split('\n\n')[0].split('\n')
+        outputlist = output.split('SERVICE\n')[1].split('\n\n')[0].split('\n')
         dataList = []
         for outputData in outputlist:
-            port, state, service = [data for data in outputData.split(' ') if data]
-            dataList.append({'port': port, 'state': state, 'service': service})
+            try:
+                port, state, service = [data for data in outputData.split(' ') if data]
+                dataList.append({'port': port, 'state': state, 'service': service})
+            except ValueError:
+                pass
 
         return dataList
 

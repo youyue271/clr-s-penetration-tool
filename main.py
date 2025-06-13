@@ -7,7 +7,7 @@ def main():
     engine = PentestEngine(config_path="config/config.yaml")
 
     engine.message_bus.publish("scan_target", {
-        "ip": "39.99.240.195",
+        "ip": "192.168.75.132",
     })
 
     # 运行引擎
